@@ -34,7 +34,7 @@ def main():
     worlds = []
 
     if args.all:
-        sectors = [x['Abbreviation'] for x in sectordict]
+        sectors = list(sectordict.keys())
     else:
         sectors = args.sectors
 
@@ -156,7 +156,7 @@ def tidy(worlds):
         'zone', 'bases', 'tradecodes',
         'importance',
         'resources', 'labour', 'infrastructure', 'efficiency',
-        'homogeneity', 'acceptance', 'strangeness', 'symbols',
+        'heterogeneity', 'acceptance', 'strangeness', 'symbols',
         'stars', 'worlds', 'belts', 'gasgiants',
         'allegiance',
         'routes',
@@ -223,22 +223,22 @@ def parse_system(row, sophonts, sectors):
     world['gasgiants'] = row['PBG'][2]
     
     ix = importre.match(row['{Ix}'])
-    
-    world['importance'] = ix.group(1)
+    if (ix != None):
+        world['importance'] = ix.group(1)
     
     ex = economre.match(row['(Ex)'])
-    
-    world['resources'] = ex.group(1)
-    world['labour'] = ex.group(2)
-    world['infrastructure'] = ex.group(3)
-    world['efficiency'] = ex.group(4)
+    if (ex != None):
+        world['resources'] = ex.group(1)
+        world['labour'] = ex.group(2)
+        world['infrastructure'] = ex.group(3)
+        world['efficiency'] = ex.group(4)
     
     cx = culturre.match(row['[Cx]'])
-    
-    world['homogeneity'] = cx.group(1)
-    world['acceptance'] = cx.group(2)
-    world['strangeness'] = cx.group(3)
-    world['symbols'] = cx.group(4)
+    if (cx != None):
+        world['heterogeneity'] = cx.group(1)
+        world['acceptance'] = cx.group(2)
+        world['strangeness'] = cx.group(3)
+        world['symbols'] = cx.group(4)
     
     world['stars'] = row['Stars']
     
@@ -270,8 +270,9 @@ def parse_system(row, sophonts, sectors):
   
     # Match races
     for match in racere.finditer(row['Remarks']):
-        sophont = sophonts[match.group(1)]
-        demographics.append("[[%s %s|%s]]" % (sophont, tenths[match.group(2)], sophont))
+        if match.group(1) in sophonts:
+            sophont = sophonts[match.group(1)]
+            demographics.append("[[%s %s|%s]]" % (sophont, tenths[match.group(2)], sophont))
  
     if len(homeworld) > 0:
         world['homeworld'] = "<br/>".join(homeworld)
@@ -282,7 +283,9 @@ def parse_system(row, sophonts, sectors):
     # Match owners
     for match in ownerre.finditer(row['Remarks']):
         if match.group(1):
-            world['ownersector'] = sectors[match.group(2)]
+            if match.group(2) in sectors:
+                world['ownersector'] = sectors[match.group(2)]
+
         else:
             world['ownersector'] = sectors[row['Sector']]
 
@@ -329,4 +332,5 @@ def get_sectors():
 
 if __name__ == "__main__":
     main()
-    
+
+
