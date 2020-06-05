@@ -21,6 +21,7 @@ def main():
     parser = argparse.ArgumentParser(description="Generate system tiddlers")
     parser.add_argument("-a", "--all", help="Generate system tiddlers for all sectors", action="store_true")
     parser.add_argument("-r", "--routes", help="Generate route information for systems", action="store_true")
+    parser.add_argument("-s", "--sector", help="Generate tiddlers for sectors and subsectors", action="store_true")
     parser.add_argument("-m", "--milieu", help="Milieu for system data",
                         choices=["M0","M990","M1105","M1120",
                                  "M1201","M1248","M1900"],
@@ -44,12 +45,42 @@ def main():
         
         metadata = get_metadata(sector, args.milieu)
     
+        if args.sector:
+            worlds.extend(get_sector(metadata))
+    
         if args.routes:
             secworlds = merge(secworlds, get_routes(metadata), 'hex')
         
         worlds.extend(secworlds)
     
     print(json.dumps(tidy(worlds), indent=4))
+
+def get_sector(metadata):
+    
+    data = []
+    
+    sector = {}
+    # currently gets the first name (there may be multiple) on
+    # the grounds that's the name used by the 3I
+    # handling of names used by other polities is future work    
+    sector['title'] = metadata['Names'][0]['Text']
+    sector['sx'] = str(metadata['X'])
+    sector['sy'] = str(metadata['Y'])
+    sector['tags'] = "Sector"
+    
+    data.append(sector)
+    
+    for sub in metadata['Subsectors']:
+        subsector = {}
+        subsector['sector'] = sector['title']
+        subsector['subsector'] = sub['Index']
+        subsector['name'] = sub['Name']
+        subsector['title'] = subsector['name'] + "/" + subsector['sector']
+        subsector['tags'] = "Subsector"
+        
+        data.append(subsector)
+    
+    return data
 
 def get_routes(metadata):
     worlds = []
@@ -144,7 +175,7 @@ def merge(pritids, addtids, key):
 def tidy(worlds):
     
     order = ['title', 'name', 'text',
-        'sector', 'subsector', 'hex', 'hx', 'hy',
+        'sector', 'subsector', 'hex', 'hx', 'hy','sx','sy',
         'starport',
         'diameter',
         'atmosphere', 'atmoscomp',  

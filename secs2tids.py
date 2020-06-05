@@ -32,8 +32,8 @@ def main():
         # handling of names used by other polities is future work    
         tiddler['title'] = sector['Names'][0]['Text']
     
-        tiddler['sx'] = sector['X']
-        tiddler['sy'] = sector['Y']
+        tiddler['sx'] = "\"" + str(sector['X']) + "\""
+        tiddler['sy'] = "\"" + str(sector['Y']) + "\""
         
         tiddler['tags'] = "Sector"
         
